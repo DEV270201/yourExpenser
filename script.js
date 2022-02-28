@@ -117,7 +117,6 @@ function validate(inp1,inp2){
 
 //function for displaying the contents
 function display(list,amt,customMsg){
-  // let {list,amt} = getInfo();
   list = list === null ? [] : list;
   amt = amt === null ? 0 : amt;
   if(list.length === 0){
@@ -129,7 +128,6 @@ function display(list,amt,customMsg){
     disdup1.appendChild(header);
   }
   else{
-  console.log("aa rha hai");
   let txtobj=" ";
   list.forEach((element,index)=>{
     txtobj += `<ul class="list-group">
@@ -151,27 +149,21 @@ function display(list,amt,customMsg){
   );
     disdup1.innerHTML  = txtobj;
   }    
+  //displaying the total expense on the DOM
     dispdup.innerHTML = `Rs : ${amt>=0 && amt<=9 ? "0" + amt : amt}`;
-      //displaying the total expense on the DOM
 }
 
 
 //function for deleting the items
 function deleteItems(id){
   let {list,amt} = getInfo();
- console.log("id : ",id);
- console.log(typeof(id));
  list = list.filter((element)=>{
-   console.log(element.desc);
-   console.log(typeof(element.id));
       if(id == element.id){
-        console.log("hello");
         amt = amt - element["spent"];
       }
       return id != element.id;
  });
 
-  console.log("list : ", list);
  search_inp.value = null;
  localStorage.setItem("lists",JSON.stringify(list));
  localStorage.setItem("Expense",JSON.stringify(amt));
