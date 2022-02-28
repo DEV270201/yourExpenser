@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Expenser</title>
+	<link href="style.css" rel="stylesheet" type="text/css" />
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+<!--   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> -->
+	<script src="https://kit.fontawesome.com/a076d05399.js">
+	</script>
+</head>
+
+<body>
+  <!--<div class="outer">-->
+  <div class="container-fluid myclass">
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<a class="navbar-brand" href="#"><b>Expenser</b></a>
+  <h4 class="disp ml-auto text-light"></h4>
+    </nav><br>
+    <div class="msg"></div>
+      <div class="search">
+      <input class="input_search" type="search" placeholder="Want to search Expense?" aria-label="Search">
+      </div>
+    <hr>
+<div class="exp">
+    <div class="input-group mb-3">
+  <input type="text" class="form-control "id="inp1"  placeholder="Spent" aria-label="Spent" aria-describedby="basic-addon2" required>
+  <div class="input-group-append">
+    <span class="input-group-text" id="basic-addon2">Rs</span>
+  </div>
+</div>
+    <h6 class="limit"><span id="limit1">0</span>/10</h6>
+    </div>
+<div class="exp">
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon1">On</span>
+  </div>
+  <input type="text" class="form-control" id="inp2" placeholder="Which item?" aria-label="Which item?" aria-describedby="basic-addon1" required>
+</div>
+     <h6 class="limit"><span id="limit2">0</span>/10</h6>
+    </div>
+    <!-- <input type="text" id="inp1" placeholder="Money Spent">
+    <input type="text" id="inp2" placeholder="on what"> -->
+    <button type="button" class="btn btn-outline-primary" id="plus1" >ADD</button><br></br>
+    <div class="disp1"></div>
+    <script src="script.js"></script>
+    </div>
+<!--</div>-->
+    <!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Popper JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+  </body>
+</html>
