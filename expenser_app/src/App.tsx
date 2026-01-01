@@ -1,11 +1,15 @@
+import Navbar from "./components/Navbar"
 import ExpenseTracker from "./pages/ExpenseTracker"
 
 function App() {
 
   return (
     <>
-    <div className="outer">
-      <ExpenseTracker />
+    <Navbar />
+    <div className="main">
+      <div className="app">
+        <ExpenseTracker />
+      </div>
     </div>
     </>
   )

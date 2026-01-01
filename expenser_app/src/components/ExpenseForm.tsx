@@ -29,7 +29,7 @@ const ExpenseForm = ({ onAdd, showAlert }: props) => {
           <input 
             type="text" 
             className="form-control rounded-1" 
-            placeholder="Amount spent" 
+            placeholder="Amount spent/recieved" 
             value={spent}
             onChange={(e) => setSpent(e.target.value.slice(0, 10))} 
           />
@@ -40,7 +40,7 @@ const ExpenseForm = ({ onAdd, showAlert }: props) => {
 
       <div className="exp">
         <div className="input-group mb-3">
-          <div className="input-group-prepend mx-1"><span className="input-group-text">On</span></div>
+          <div className="input-group-prepend mx-1"><span className="input-group-text">On/From</span></div>
           <input 
             type="text" 
             className="form-control rounded-1" 
@@ -51,6 +51,33 @@ const ExpenseForm = ({ onAdd, showAlert }: props) => {
         </div>
         <h6 className="limit"><span>{desc.length}</span>/10</h6>
       </div>
+      <div className="dropdown" style={{ width: '8rem' }}>
+    <button 
+        className="btn border-dark d-flex align-items-center gap-2 dropdown-toggle w-100" 
+        type="button" 
+        id="dropdownMenuLink" 
+        data-bs-toggle="dropdown" 
+        aria-expanded="false"
+    >
+        {/* <span>{valueToIcon[name]}</span> {name} */}
+        Type
+    </button>
+    
+    <ul className="dropdown-menu border" aria-labelledby="dropdownMenuLink">
+        <li 
+            className={`dropdown-item d-flex gap-2 fw-bold cursor-pointer active`} 
+            onClick={()=>{}}
+        >
+            Oldest
+        </li>
+        <li 
+            className={`dropdown-item d-flex gap-2 fw-bold cursor-pointer`} 
+            onClick={()=>{}}
+        >
+            Latest
+        </li>
+    </ul>
+</div>
       <button className="btn btn-outline-primary" onClick={handleSubmit}>ADD</button>
     </>
   );
