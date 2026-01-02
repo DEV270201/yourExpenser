@@ -2,7 +2,7 @@ import { useState } from 'react';
 import AlertMessage from '../components/AlertMessage';
 import ExpenseForm from '../components/ExpenseForm';
 import ExpenseList from '../components/ExpenseList';
-import type { MessageType, ExpensesType } from '../types/common';
+import type { MessageType, ExpensesType, TransactionForm } from '../types/common';
 
 const ExpenseTracker = () => {
   const [list, setList] = useState<ExpensesType[]>([]);
@@ -19,11 +19,13 @@ const ExpenseTracker = () => {
     setTimeout(() => setMessage({ text: "", type: '0' }), 3000);
   };
 
-  const addExpense = (amount: number, description: string) => {
+  const addExpense = (transaction: TransactionForm) => {
     const newExpense:ExpensesType = {
       id: Math.random(), // Replacing idGenerator
-      spent: amount,
-      desc: description.toLowerCase(),
+      amt: Number(transaction.amt),
+      desc: transaction.desc.toLowerCase(),
+      type: transaction.type,
+      category:transaction.category,
       moment: new Date().toLocaleDateString()
     };
 
@@ -31,17 +33,22 @@ const ExpenseTracker = () => {
     setBalance((prev) => {
       return {
         ...prev,
-        exp: prev.exp + (-newExpense.spent),
-        tot: prev.tot + (-newExpense.spent)
+        [transaction.type]: prev[transaction.type] + (newExpense.amt),
+        tot: prev.tot + (newExpense.amt)
       }
     })
-    
     showAlert({text: "Expense added successfully!!", type: '1'});
   };
 
-  const deleteExpense = (id:number, spent:number) => {
-    setList(list.filter(item => item.id !== id));
-    // setTotalAmount(prev => prev - spent);
+  const deleteExpense = (item: ExpensesType) => {
+    setList(list.filter(ele => item.id !== ele.id));
+    setBalance((prevBalance)=> {
+      return {
+        ...prevBalance,
+        [item.type]: prevBalance[item.type] - item.amt,
+        tot: prevBalance.tot - item.amt
+      }
+    })
   };
 
   const filteredList = list.filter(item => 
@@ -63,17 +70,16 @@ const ExpenseTracker = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-      <hr />
-
+      
       {/* Balance Details  */}
       <div className='balance_details d-flex flex-column align-items-end '>
-        <div className='fs-6'>Income: <span className='fw-bold text-success'>{balance.inc.toFixed(2)}</span></div>
+        <div className='fs-6'>Income: <span className='fw-bold text-primary'>{balance.inc.toFixed(2)}</span></div>
         <div className='fs-6'>Expense: <span className='fw-bold text-danger'>{balance.exp.toFixed(2)}</span></div>
-        <div className='fs-6'>Overall: <span className={`fw-bold ${balance.tot >= 0 ? 'text-success' : 'text-danger' }`}>{balance.tot.toFixed(2)}</span></div>
+        <div className='fs-6'>Overall: <span className={`fw-bold ${balance.tot >= 0 ? 'text-primary' : 'text-danger' }`}>{balance.tot.toFixed(2)}</span></div>
       </div>
 
       <ExpenseForm onAdd={addExpense} showAlert={showAlert} />
-      
+      <hr />
       <ExpenseList 
         items={filteredList} 
         onDelete={deleteExpense} 

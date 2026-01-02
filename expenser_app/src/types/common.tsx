@@ -5,16 +5,25 @@ export interface MessageType {
 
 export interface ExpensesType {
      id: number, // Replacing idGenerator
-      spent: number,
+      amt: number,
       desc: string,
+      type: string,
+      category: string,
       moment: string
 }
 
+export interface TransactionForm {
+   amt: string,
+   desc: string,
+   type: string,
+   category: string
+}
+
 // functions 
-export type showAlertFunctionType = {
+export type ShowAlertFunctionType = {
     (a: MessageType): void
 }
 
-export type deleteExpenseFunctionType = {
-    (a: number, b: number): void
+export type DeleteExpenseFunctionType = {
+    (a: ExpensesType): void
 }
