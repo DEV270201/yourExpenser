@@ -1,4 +1,4 @@
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
 import type { ShowAlertFunctionType, TransactionForm } from "../types/common";
 
 type props = {

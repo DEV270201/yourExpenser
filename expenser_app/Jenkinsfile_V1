@@ -1,0 +1,63 @@
+//this jenkins file can be used when we want to spin up special container for building the image 
+// and then pushing it into the AWS ECR
+
+pipeline {
+    agent any
+    environment {
+        AWS_ACCOUNT_ID = 'your-account-id'
+        AWS_REGION = 'your-aws-region'
+        ECR_REPO_NAME = 'your-repo-name'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        FULL_IMAGE = "${ECR_URL}/${ECR_REPO_NAME}:${IMAGE_TAG}"
+    }
+    
+    stages {
+        stage('Build and Push the image to ECR'){
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    // mounting the socket to the host machine, enabling the aws container access the docker engine on the host
+                    args '-u root --entrypoint="" -v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
+            environment {
+                AWS_CREDS = credentials('aws-creds')
+            }
+            steps {
+                script {
+                    sh "yum install -y docker" // since the aws image wont have docker cli, so installing it. This will be used to send the command to host docker engine for performing operations
+                    sh "docker build -t ${FULL_IMAGE} ./expenser_app/"
+                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}"
+                    sh "docker push ${FULL_NAME}"
+                    sh "docker rmi ${FULL_NAME}" //after successful push to the AWS ECR, we delete the image from the jenkins node
+                }
+            }
+        }
+        
+        stage('Deploy to AWS EC2'){
+            steps {
+                sshagent(['ansible-deploy']){
+                    sh """ 
+                      ssh -o StrictHostKeyChecking=no ec2-user@ec2-98-81-79-128.compute-1.amazonaws.com << 'EOF'
+                      aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}
+                      docker pull ${FULL_IMAGE}
+                      docker stop ${REPO_NAME} || true
+                      docker rm ${REPO_NAME} || true
+                      docker run -d --name ${REPO_NAME} -p 80:80 ${FULL_IMAGE}
+                    EOF
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "Deployment successful :))"
+        }
+        failure {
+            echo "Deployment failed :(("
+        }
+    }
+}
