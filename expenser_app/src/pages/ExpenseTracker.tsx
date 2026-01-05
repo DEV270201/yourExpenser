@@ -14,11 +14,13 @@ const ExpenseTracker = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [message, setMessage] = useState<MessageType>({ text: "", type: '0' });
 
+  //for showing messages on the UI
   const showAlert = ({text, type}:MessageType) => {
     setMessage({ text, type });
     setTimeout(() => setMessage({ text: "", type: '0' }), 3000);
   };
 
+  //add expense function to either add income/expense transaction
   const addExpense = (transaction: TransactionForm) => {
     const newExpense:ExpensesType = {
       id: Math.random(), // Replacing idGenerator
@@ -40,6 +42,7 @@ const ExpenseTracker = () => {
     showAlert({text: "Expense added successfully!!", type: '1'});
   };
 
+  //delete expense function for deleting income/expense transaction
   const deleteExpense = (item: ExpensesType) => {
     setList(list.filter(ele => item.id !== ele.id));
     setBalance((prevBalance)=> {
