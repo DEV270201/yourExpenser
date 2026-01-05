@@ -1,0 +1,64 @@
+pipeline {
+    agent any
+    environment {
+        AWS_ACCOUNT_ID = 'your-aws-account-id'
+        AWS_REGION = 'your-aws-region'
+        ECR_REPO_NAME = 'your-ecr-repo-name'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        FULL_IMAGE = "${ECR_URL}/${ECR_REPO_NAME}:${IMAGE_TAG}"
+    }
+    
+    stages {
+        // source code will be pulled by setting the SCM in the Jenkins console  
+        stage('Build and Push the image to ECR'){
+            steps {
+                script {
+                       sh "ls -la"
+                       sh "docker build -t ${FULL_IMAGE} ./expenser_app/"
+                        // this will run the docker container and share the same workspace as the top node
+                        docker.image('amazon/aws-cli').inside('--entrypoint=""') {
+                        withCredentials([
+                        // binding the credentials
+                        // you need to use your credentialid for aws credentials
+                        usernamePassword(credentialsId: 'aws-creds', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')
+                    ]) {
+                                sh "aws ecr get-login-password --region ${AWS_REGION} > ecr_pass.txt"
+                            }
+                        }
+                    
+                      sh "cat ecr_pass.txt | docker login --username AWS --password-stdin ${ECR_URL}"
+                      sh "docker push ${FULL_IMAGE}"
+                      sh "rm ecr_pass.txt"
+                      sh "docker rmi ${FULL_IMAGE}" //after successful push to the AWS ECR, we delete the image from the jenkins node
+                }
+            }
+                }
+        
+        stage('Deploy to AWS EC2'){
+            steps {
+                // here you need to use your credential name having the SSH key
+                sshagent(['ansible-deploy']){
+                    sh """ 
+ssh -o StrictHostKeyChecking=no ec2-user@ec2-98-81-79-128.compute-1.amazonaws.com << 'EOF'
+aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}
+docker pull ${FULL_IMAGE}
+docker stop ${ECR_REPO_NAME} || true
+docker rm ${ECR_REPO_NAME} || true
+docker run -d --name ${ECR_REPO_NAME} -p 80:80 ${FULL_IMAGE}
+EOF
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "Deployment successful :))"
+        }
+        failure {
+            echo "Deployment failed :(("
+        }
+    }
+}
