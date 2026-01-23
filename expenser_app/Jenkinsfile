@@ -53,12 +53,29 @@ EOF
         }
     }
     
-    post {
-        success {
-            echo "Deployment successful :))"
-        }
-        failure {
-            echo "Deployment failed :(("
+   post {
+    always {
+        script {
+            def subject = "${currentBuild.currentResult}: Job '${env.JOB_NAME}' [Build #${env.BUILD_NUMBER}]"
+            def body = """
+            Hello Devansh, 
+            This is a application pipeline status email.
+            Project: ${env.JOB_NAME}
+            Build Number: ${env.BUILD_NUMBER}
+            Status: ${currentBuild.currentResult}
+                
+            Check the console for further information.
+            
+            Thanks!
+            """
+            
+            // Only send email on Success or Failure (ignores Aborted, etc. if you prefer)
+            if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'FAILURE') {
+                mail to: 'devanshshah649@gmail.com',
+                     subject: subject,
+                     body: body
+            }
         }
     }
+   }
 }
