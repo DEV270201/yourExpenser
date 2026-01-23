@@ -58,7 +58,7 @@ EOF
         script {
             def subject = "${currentBuild.currentResult}: Job '${env.JOB_NAME}' [Build #${env.BUILD_NUMBER}]"
             def body = """
-            Hello Devansh, 
+            Hello XYZ, 
             This is a application pipeline status email.
             Project: ${env.JOB_NAME}
             Build Number: ${env.BUILD_NUMBER}
@@ -71,7 +71,7 @@ EOF
             
             // Only send email on Success or Failure (ignores Aborted, etc. if you prefer)
             if (currentBuild.currentResult == 'SUCCESS' || currentBuild.currentResult == 'FAILURE') {
-                mail to: 'devanshshah649@gmail.com',
+                mail to: 'your email',
                      subject: subject,
                      body: body
             }
