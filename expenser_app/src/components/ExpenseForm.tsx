@@ -1,12 +1,13 @@
 import { useState, type ChangeEvent } from "react";
-import type { ShowAlertFunctionType, TransactionForm } from "../types/common";
+import type { TransactionForm } from "../types/common";
 import Dropdown from "./Dropdown";
 import type { UseMutationResult } from "@tanstack/react-query";
+import SpinnerLoader from "./Loaders/Spinner";
+import { toast } from 'react-toastify';
 
 type props = {
   onAdd: any;
-  showAlert: ShowAlertFunctionType;
-  addMutation: UseMutationResult<any, Error, TransactionForm, unknown>
+  addMutation: UseMutationResult<any, Error, TransactionForm, unknown>;
 };
 
 function getDefaultObj(): TransactionForm {
@@ -16,25 +17,20 @@ function getDefaultObj(): TransactionForm {
     LongDesc: "",
     Type: "Income",
     Category: "Income",
-    Currency: "USD"
-  }
+    Currency: "USD",
+  };
 }
 
-const ExpenseForm = ({ onAdd, showAlert, addMutation }: props) => {
-  const [transaction, setTransaction] = useState<TransactionForm>(getDefaultObj());
+const ExpenseForm = ({ onAdd, addMutation }: props) => {
+  const [transaction, setTransaction] =
+    useState<TransactionForm>(getDefaultObj());
 
   const [isOpen, setIsOpen] = useState(false);
 
-  // const toggleForm = () => setIsOpen(!isOpen);
-
-  // // Update your handleSubmit to close the form after adding
-  // const handleAddAndClose = (e: any) => {
-  //   handleSubmit();
-  //   setIsOpen(false);
-  // };
-
   const updateTransactionForm = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string; value: string }},
+    e:
+      | ChangeEvent<HTMLInputElement | HTMLSelectElement>
+      | { target: { name: string; value: string } },
   ): void => {
     const { name, value } = e.target;
     setTransaction((prevState) => ({
@@ -42,27 +38,23 @@ const ExpenseForm = ({ onAdd, showAlert, addMutation }: props) => {
       [name]: name == "Desc" ? value.slice(0, 10) : value,
     }));
   };
-  
 
   const handleSubmit = () => {
-    // Validation logic from your script
+    // Validation (logic from your script
     transaction.Desc = transaction.Desc.slice(0, 10);
-    transaction.Value = Number(transaction.Value);
-    if (
-      transaction.Desc.trim().length === 0 ||
-      transaction.Value === 0.0
-    ) {
-      showAlert({ text: "Sorry, invalid input :(", type: "0" });
+    if (transaction.Desc.trim().length === 0) {
+     toast.error("❌ Please mention source/payee ...");
       return;
     }
-    if (Number(transaction.Value) >= 1e5) {
-      showAlert({ text: "Amount should be less than 1,00,000 :(", type: "0" });
+    if (Number(transaction.Value) >= 50001) {
+     toast.error(
+        "❌ Amount should be between -50,000 - 50,000 ..."
+      );
       return;
     }
 
-    if (transaction.Type === "Expense") {
-      transaction["Value"] = -transaction.Value;
-    }
+    if (transaction.Type === "Expense") 
+      transaction["Value"] = transaction.Value > 0 ? -transaction.Value : 0;
 
     onAdd(transaction);
     setTransaction(getDefaultObj());
@@ -125,6 +117,14 @@ const ExpenseForm = ({ onAdd, showAlert, addMutation }: props) => {
                     min="0"
                     value={transaction.Value}
                     onChange={updateTransactionForm}
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                      // List of keys to block
+                      const forbiddenKeys = ["+", "-", "e", "E"];
+
+                      if (forbiddenKeys.includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}  
                   />
                   <label htmlFor="Value">Amount ($)</label>
                 </div>
@@ -172,29 +172,31 @@ const ExpenseForm = ({ onAdd, showAlert, addMutation }: props) => {
               </div>
 
               {/* Type Dropdown */}
-             <div className="row g-2">
-              <div className="col-6">
-                <Dropdown 
-                  label="Type"
-                  name="Type"
-                  options={["Expense", "Income"]}
-                  value={transaction.Type}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    updateTransactionForm({ target: { name: 'Type', value: val } });
-                  }}
-                />
+              <div className="row g-2">
+                <div className="col-6">
+                  <Dropdown
+                    label="Type"
+                    name="Type"
+                    options={["Expense", "Income"]}
+                    value={transaction.Type}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      updateTransactionForm({
+                        target: { name: "Type", value: val },
+                      });
+                    }}
+                  />
+                </div>
+                <div className="col-6">
+                  <Dropdown
+                    label="Category"
+                    name="Category"
+                    options={categories}
+                    value={transaction.Category}
+                    onChange={updateTransactionForm}
+                  />
+                </div>
               </div>
-              <div className="col-6">
-                <Dropdown 
-                  label="Category"
-                  name="Category"
-                  options={categories}
-                  value={transaction.Category}
-                  onChange={updateTransactionForm}
-                />
-              </div>
-            </div>
 
               {/* Submit Button */}
               <div className="col-12 mt-4">
@@ -203,7 +205,11 @@ const ExpenseForm = ({ onAdd, showAlert, addMutation }: props) => {
                   onClick={handleSubmit}
                   disabled={addMutation.isPending}
                 >
-                  {addMutation.isPending ? 'Loading....' : 'Confirm Transaction'}
+                  {addMutation.isPending ? (
+                    <SpinnerLoader color="#0d6efd" />
+                  ) : (
+                    "Confirm Transaction"
+                  )}
                 </button>
               </div>
             </div>

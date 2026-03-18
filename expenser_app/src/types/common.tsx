@@ -1,8 +1,3 @@
-export interface MessageType {
-  text: string;
-  type: string;
-}
-
 export interface ExpensesType {
   Category: string;
   Currency: string;
@@ -27,10 +22,6 @@ export interface TransactionForm {
   Currency: string;
 }
 
-// functions
-export type ShowAlertFunctionType = {
-  (a: MessageType): void;
-};
 
 export type DeleteExpenseFunctionType = {
   (a: ExpensesType): void;

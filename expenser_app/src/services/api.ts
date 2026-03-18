@@ -1,4 +1,5 @@
 import type { TransactionForm } from "../types/common";
+import axios from "axios";
 const BASE_URL = 'https://a9cijggo17.execute-api.us-east-2.amazonaws.com/testing';
 
 export const apiClient = {
@@ -7,37 +8,36 @@ export const apiClient = {
     
   getSummary: (userId:string, month:string) => 
     fetch(`${BASE_URL}/users/${userId}/transactions?month_year=${month}`).then(r => r.json()),
-    
-  deleteTransaction: (userId:string, transId:string) =>
-    fetch(`${BASE_URL}/users/${userId}/transaction/${transId}`, {
-      method: 'DELETE',
-    }).then(r => r.json()),
  
  getDashboardData: async (userId: string, startDate: string, endDate: string) => {
   // Promise.all will reject if ANY of the internal fetches fail
   const [transactions, summary] = await Promise.all([
-    apiClient.getTransactions(userId, "INC", startDate, endDate),
+    apiClient.getTransactions(userId, "EXP", startDate, endDate),
     apiClient.getSummary(userId, startDate.slice(0,7))
   ]);
   return { transactions, summary };
 },
 
 addTransaction: async (userId: string, transaction: TransactionForm) => {
-  const response = await fetch(`${BASE_URL}/users/${userId}/transactions`, {
+  let response = await axios(`${BASE_URL}/users/${userId}/transactions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+    data: JSON.stringify({
       ...transaction,
       // Ensure date is ISO format for DynamoDB sorting: YYYY-MM-DD
       Date: new Date().toLocaleDateString('en-CA'),
     }),
-  });
+  }).catch((error)=>{
+    console.log("Error add transaction: ", error);
+  })
 
-  if (!response.ok) throw new Error('Failed to add transaction!');
-  return response.json();
+  if(!response?.data?.success)
+      throw new Error('Sorry, something went wrong ...');
+  
+  return response;
 },
 
-deleteTransactionApi: async (userId: string, transId: string|undefined) => {
+deleteTransaction: async (userId: string, transId: string|undefined) => {
   console.log("key: ", transId);
   const response = await fetch(`${BASE_URL}/users/${userId}/transactions/${transId}`, {
     method: 'DELETE'

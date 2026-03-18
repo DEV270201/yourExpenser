@@ -38,9 +38,6 @@
   margin-top:-15px;
   margin-bottom:15px;
   margin-right: 10px;
-/*   position: relative;
-  right: 0px;
-  top: 0px; */
 }
 
 .exp{
@@ -97,8 +94,8 @@ input[type=number] {
 
 /* Container & Animation */
 .transaction-card-wrapper {
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 100%;
+  /* margin: 0 auto; */
 }
 
 .collapsible-form {
@@ -224,4 +221,93 @@ input[type=number] {
 }
 .caret.rotated {
   transform: rotate(180deg);
+}
+
+
+
+/* skeleton loader */
+.skeleton-item {
+  height: 60px;
+  width: 100%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* spinner loader */
+/* Add this to your App.css or index.css */
+.loading-overlay {
+  width: 95%;
+  height: 95%;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px); /* Modern blur effect */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid black; /* Bootstrap Primary Blue */
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+/* balance details  */
+.balance-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px); /* Modern blur effect */
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  max-width: 300px; /* Keeps it from stretching too far on desktop */
+  transition: transform 0.3s ease;
+}
+
+/* Responsive: On mobile, make it full width */
+@media (max-width: 576px) {
+  .balance-card {
+    max-width: 100%;
+    align-items: center !important; /* Center text on small screens */
+    margin-bottom: 20px;
+  }
+}
+
+.balance-card:hover {
+  transform: translateY(-5px); /* Subtle lift on hover */
+}
+
+.label {
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.balance-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+}
+
+.value {
+  font-family: 'Inter', 'Roboto', sans-serif; /* Cleaner font if available */
+  font-size: 1rem;
 }
