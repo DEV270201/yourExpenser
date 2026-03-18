@@ -16,34 +16,58 @@ def lambda_handler(event, context):
     
     #getting all the paramters for the api call
     user_id = event['pathParameters']['user_id']
-    type_ = event['queryStringParameters']['type']
-    start_date = event['queryStringParameters']['start_date']
-    end_date = event['queryStringParameters']['end_date']
+    type_ = event['queryStringParameters'].get('type', 'inc')
+    month_year = event['queryStringParameters'].get('month_year', None)
+    start_date = event['queryStringParameters'].get('start_date',None)
+    end_date = event['queryStringParameters'].get('end_date', None)
+
+    print("start date: ", start_date)
+    print("end date: ", end_date)
     
     #generated PK and SK for the table as required for the query
     partition_key = f"USER:{user_id}"
-    start_sort_key = f"{type_.upper()}:{start_date}"
-    end_sort_key = f"{type_.upper()}:{end_date}"
-
-    if type_ == 'all':
-       start_sort_key = f"EXPENSE:{start_date}"
-       end_sort_key = f"INCOME:{end_date}"
 
     try:
-        resp = table.query(
-            IndexName="Expenser_GSI1",
-            KeyConditionExpression=Key('GSI1_PK').eq(partition_key) & Key('GSI1_SK').between(start_sort_key, end_sort_key)
-        )
+        items = []
+        summary = {}
+        resp = ""
+        if start_date and end_date:
+            start_sort_key = f"{type_.upper()[:3]}:{start_date}"
+            end_sort_key = f"{type_.upper()[:3]}:{end_date}"
+
+            if type_ == 'all':
+                start_sort_key = f"EXP:{start_date}"
+                end_sort_key = f"INC:{end_date}"
+
+            resp = table.query(
+                        IndexName="Expenser_GSI1",
+                        KeyConditionExpression=Key('GSI1_PK').eq(partition_key) & Key('GSI1_SK').between(start_sort_key, end_sort_key)
+                    )
+        
+            items = resp.get('Items', [])
+
+        elif month_year:
+            sort_key = f"SUMMARY:{month_year}"
+            resp = table.get_item(
+            Key={
+                'PK': partition_key,
+                'SK': sort_key
+            }
+            )
+            summary = resp.get('Item', {})
 
         print("main transactions response: ", resp)
-        items = resp.get('Items', [])
+
         return {
             "statusCode": 200,
             "headers": {
                 "Content-Type": "application/json",
+                'Access-Control-Allow-Origin': 'http://localhost:5173',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,DELETE'
             },
             "body": json.dumps({
                 "transactions": items,
+                "summary": summary,
                 "success": True
             }, default=float)
         }

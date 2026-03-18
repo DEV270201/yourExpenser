@@ -1,6 +1,6 @@
 import type { ExpensesType, DeleteExpenseFunctionType } from "../types/common";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faIndianRupeeSign, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faDollarSign , faTrash } from "@fortawesome/free-solid-svg-icons";
 
 type props = {
   items: ExpensesType[];
@@ -19,14 +19,14 @@ const ExpenseList = ({ items, onDelete, isSearching }: props) => {
         <h6 className="text-primary">{emptyMsg}</h6>
       ) : (
         items.map((item) => (
-          <ul className="list-group mb-3" key={item.id}>
+          <ul className="list-group mb-3" key={item.PK}>
             <li
               className="list-group-item d-flex align-items-stretch p-0 overflow-hidden"
               style={{ height: "70px" }}
             >
               {/* transaction type */}
               <div
-                className={`${item.type == "inc" ? "bg-primary" : "bg-danger"}`}
+                className={`${item.Type == "Income" ? "bg-primary" : "bg-danger"}`}
                 style={{ width: "10px", flexShrink: 0 }}
               ></div>
 
@@ -37,18 +37,21 @@ const ExpenseList = ({ items, onDelete, isSearching }: props) => {
                   style={{ width: "200px", overflowX: "auto" }}
                 >
                   <span className="font-weight-bold">
-                    {item.desc[0].toUpperCase() + item.desc.slice(1)}
+                    {item.Desc[0].toUpperCase() + item.Desc.slice(1)}
                   </span>
-                  <small className="text-muted">{item.moment}</small>
+                  <span className="text-xs">
+                    {item.Category}
+                  </span>
+                  <small className="text-muted text-xs">{item.Date}</small>
                 </div>
 
                 <div className="d-flex align-items-center">
                   <span className="px-5 font-weight-bold">
                     <FontAwesomeIcon
-                      icon={faIndianRupeeSign}
+                      icon={faDollarSign }
                       style={{ fontWeight: "lighter", fontSize: "0.9em" }}
-                    />{" "}
-                    {item.amt}
+                    />
+                    {item.Value.toFixed(1)}
                   </span>
 
                   <button

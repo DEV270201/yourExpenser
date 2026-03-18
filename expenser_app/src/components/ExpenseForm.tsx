@@ -1,153 +1,214 @@
 import { useState, type ChangeEvent } from "react";
 import type { ShowAlertFunctionType, TransactionForm } from "../types/common";
+import Dropdown from "./Dropdown";
+import type { UseMutationResult } from "@tanstack/react-query";
 
 type props = {
   onAdd: any;
   showAlert: ShowAlertFunctionType;
+  addMutation: UseMutationResult<any, Error, TransactionForm, unknown>
 };
 
-const ExpenseForm = ({ onAdd, showAlert }: props) => {
-  const [transaction, setTransaction] = useState<TransactionForm>({
-    amt: "",
-    desc: "",
-    type: "inc",
-    category: "Income",
-  });
+function getDefaultObj(): TransactionForm {
+  return {
+    Value: 0.0,
+    Desc: "",
+    LongDesc: "",
+    Type: "Income",
+    Category: "Income",
+    Currency: "USD"
+  }
+}
+
+const ExpenseForm = ({ onAdd, showAlert, addMutation }: props) => {
+  const [transaction, setTransaction] = useState<TransactionForm>(getDefaultObj());
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  // const toggleForm = () => setIsOpen(!isOpen);
+
+  // // Update your handleSubmit to close the form after adding
+  // const handleAddAndClose = (e: any) => {
+  //   handleSubmit();
+  //   setIsOpen(false);
+  // };
 
   const updateTransactionForm = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string; value: string }},
   ): void => {
     const { name, value } = e.target;
     setTransaction((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: name == "Desc" ? value.slice(0, 10) : value,
     }));
   };
+  
 
   const handleSubmit = () => {
     // Validation logic from your script
-    transaction.desc = transaction.desc.slice(0, 20);
-    if (transaction.desc.trim().length === 0 || transaction.amt.trim().length === 0) {
+    transaction.Desc = transaction.Desc.slice(0, 10);
+    transaction.Value = Number(transaction.Value);
+    if (
+      transaction.Desc.trim().length === 0 ||
+      transaction.Value === 0.0
+    ) {
       showAlert({ text: "Sorry, invalid input :(", type: "0" });
       return;
     }
-    transaction.amt = transaction.amt.replace(/-/g, "");
-    if (Number(transaction.amt) >= 1e5) {
+    if (Number(transaction.Value) >= 1e5) {
       showAlert({ text: "Amount should be less than 1,00,000 :(", type: "0" });
       return;
     }
 
-    if (transaction.type === "exp") {
-      console.log("hello")
-      transaction["amt"] = "-" + transaction.amt;
+    if (transaction.Type === "Expense") {
+      transaction["Value"] = -transaction.Value;
     }
 
     onAdd(transaction);
-    setTransaction({
-      amt: "",
-      desc: "",
-      type: "inc",
-      category: "Income",
-    });
+    setTransaction(getDefaultObj());
   };
+
+  const categories = [
+    "Entertainment",
+    "Grocery",
+    "Shopping",
+    "Bank",
+    "Refund",
+    "Miscellaneous",
+  ];
 
   return (
     <>
-      <div className="p-1">
-        <div className="input-group mb-3">
-          <input
-            type="number"
-            className="form-control rounded-1"
-            name="amt"
-            placeholder="Amount spent/recieved"
-            value={transaction.amt}
-            onChange={updateTransactionForm}
-          />
-          <div className="input-group-append ml-1">
-            <span className="input-group-text">Rs</span>
+      <div className="transaction-card-wrapper p-2">
+        {/* Modern Toggle Button */}
+        <button
+          className="btn w-100 d-flex align-items-center justify-content-between p-3 border-0 shadow-sm"
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "14px",
+            transition: "0.3s",
+          }}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <div className="d-flex align-items-center">
+            <div
+              className={`rounded-circle p-2 mr-3 ${isOpen ? "bg-danger-light text-danger" : "bg-primary-light text-primary"}`}
+              style={{
+                backgroundColor: isOpen ? "#fee2e2" : "#dbeafe",
+                width: "40px",
+              }}
+            >
+              {isOpen ? "✕" : "＋"}
+            </div>
+            <span className="font-weight-bold text-dark mx-2">
+              {isOpen ? "Cancel Transaction" : "New Transaction"}
+            </span>
+          </div>
+        </button>
+
+        {/* Animated Form */}
+        <div className={`collapsible-form ${isOpen ? "show" : ""}`}>
+          <div
+            className="p-4 bg-white shadow-sm"
+            style={{ borderRadius: "20px" }}
+          >
+            <div className="row g-3">
+              {/* Amount Field */}
+              <div className="col-12 col-md-4">
+                <div className="form-floating">
+                  <input
+                    type="number"
+                    className="form-control"
+                    id="Value"
+                    name="Value"
+                    placeholder="0.00"
+                    min="0"
+                    value={transaction.Value}
+                    onChange={updateTransactionForm}
+                  />
+                  <label htmlFor="Value">Amount ($)</label>
+                </div>
+              </div>
+
+              {/* Short Title */}
+              <div className="col-12 col-md-8">
+                <div className="form-floating">
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="desc"
+                    name="Desc"
+                    placeholder="Title"
+                    maxLength={10}
+                    value={transaction.Desc}
+                    onChange={updateTransactionForm}
+                  />
+                  <label htmlFor="desc">Source / Payee</label>
+                  <div className="position-absolute bottom-0 end-0 p-2">
+                    <small
+                      className="text-muted"
+                      style={{ fontSize: "0.7rem" }}
+                    >
+                      {transaction.Desc.length}/10
+                    </small>
+                  </div>
+                </div>
+              </div>
+
+              {/* Long Description */}
+              <div className="col-12">
+                <div className="form-floating">
+                  <textarea
+                    className="form-control"
+                    placeholder="Notes"
+                    id="LongDesc"
+                    name="LongDesc"
+                    style={{ height: "80px" }}
+                    // value={transaction.longDesc}
+                    // onChange={updateTransactionForm}
+                  ></textarea>
+                  <label htmlFor="longDesc">Detailed Notes</label>
+                </div>
+              </div>
+
+              {/* Type Dropdown */}
+             <div className="row g-2">
+              <div className="col-6">
+                <Dropdown 
+                  label="Type"
+                  name="Type"
+                  options={["Expense", "Income"]}
+                  value={transaction.Type}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateTransactionForm({ target: { name: 'Type', value: val } });
+                  }}
+                />
+              </div>
+              <div className="col-6">
+                <Dropdown 
+                  label="Category"
+                  name="Category"
+                  options={categories}
+                  value={transaction.Category}
+                  onChange={updateTransactionForm}
+                />
+              </div>
+            </div>
+
+              {/* Submit Button */}
+              <div className="col-12 mt-4">
+                <button
+                  className="btn btn-add-submit w-100 py-3 shadow-sm"
+                  onClick={handleSubmit}
+                  disabled={addMutation.isPending}
+                >
+                  {addMutation.isPending ? 'Loading....' : 'Confirm Transaction'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-      <div className="exp">
-        <div className="input-group mb-3">
-          <div className="input-group-prepend mr-1">
-            <span className="input-group-text">On/From</span>
-          </div>
-          <input
-            type="text"
-            className="form-control rounded-1"
-            placeholder="What?"
-            name={"desc"}
-            value={transaction.desc}
-            onChange={updateTransactionForm}
-          />
-        </div>
-        <h6 className="limit">
-          <span>{transaction.desc.length}</span>/20
-        </h6>
-      </div>
-
-      {/* Transaction Type Dropdown */}
-      <div className="input-group mb-3" style={{ width: "fit-content" }}>
-        <div className="input-group-prepend">
-          <label
-            className="input-group-text"
-            htmlFor="transaction_type"
-            style={{ backgroundColor: "#f8f9fa" }}
-          >
-            Type
-          </label>
-        </div>
-        <select
-          className="dropdown_select rounded-1 mx-1"
-          id="transaction_type"
-          name={'type'}
-          value={transaction.type}
-          onChange={updateTransactionForm}
-          style={{
-            borderColor: "#ced4da",
-          }}
-        >
-          <option value="exp">Expense</option>
-          <option value="inc">Income</option>
-        </select>
-      </div>
-
-      {/* category Type Dropdown */}
-      <div className="input-group mb-3" style={{ width: "fit-content" }}>
-        <div className="input-group-prepend">
-          <label
-            className="input-group-text"
-            htmlFor="category_type"
-            style={{ backgroundColor: "#f8f9fa" }}
-          >
-            Category
-          </label>
-        </div>
-        <select
-          className="dropdown_select rounded-1 mx-1"
-          id="category_type"
-          name={'category'}
-          value={transaction.category}
-          onChange={updateTransactionForm}
-          style={{
-            borderColor: "#ced4da",
-          }}
-        >
-          <option value="Entertainment">Entertainment</option>
-          <option value="Grocery">Grocery</option>
-          <option value="Miscellaneous">Miscellaneous</option>
-          <option value="Bank">Bank</option>
-          <option value="Shopping">Shopping</option>
-          <option value="Income">Income</option>
-          <option value="Refund">Refund</option>
-          <option value="Payable">Payable</option>
-        </select>
-      </div>
-
-      <button className="btn btn-outline-primary" onClick={handleSubmit}>
-        ADD
-      </button>
       </div>
     </>
   );

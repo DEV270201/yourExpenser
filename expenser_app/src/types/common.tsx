@@ -1,29 +1,37 @@
 export interface MessageType {
-    text: string,
-    type: string
+  text: string;
+  type: string;
 }
 
 export interface ExpensesType {
-     id: number, // Replacing idGenerator
-      amt: number,
-      desc: string,
-      type: string,
-      category: string,
-      moment: string
+  Category: string;
+  Currency: string;
+  Date: string;
+  Desc: string;
+  GSI1_PK: string|null;
+  GSI1_SK: string|null;
+  PK: string|null;
+  SK: string|null;
+  Type: string;
+  Value: number;
 }
+
+export type TransactionType = "Expense" | "Income";
 
 export interface TransactionForm {
-   amt: string,
-   desc: string,
-   type: string,
-   category: string
+  Value: number;
+  Desc: string;
+  LongDesc: string;
+  Type: TransactionType;
+  Category: string;
+  Currency: string;
 }
 
-// functions 
+// functions
 export type ShowAlertFunctionType = {
-    (a: MessageType): void
-}
+  (a: MessageType): void;
+};
 
 export type DeleteExpenseFunctionType = {
-    (a: ExpensesType): void
-}
+  (a: ExpensesType): void;
+};

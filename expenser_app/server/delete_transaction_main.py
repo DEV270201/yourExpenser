@@ -9,21 +9,61 @@ config = Config(
 
 def lambda_handler(event, context):
      
-    dynamodb = boto3.resource('dynamodb', config=config)
-    table = dynamodb.Table('Expenser_App')
+    dynamodb = boto3.client('dynamodb', config=config)
+    table_name = 'Expenser_App'
 
     user_id = event['pathParameters']['user_id']
     trans_id = event['pathParameters']['trans_id']
 
-    partition_key = f"TRAN:{trans_id}"
+    partition_key = f"TRANS:{trans_id}"
     sort_key = f"DATA"
+    user_key = f"USER:{user_id}"
 
     try:
-        resp = table.delete_item(
-            Key={
-                'PK': partition_key,
-                'SK': sort_key
-            }
+        # 1. Fetch the existing record to get the values for subtraction
+        resp = dynamodb.get_item(
+            TableName=table_name,
+            Key={'PK': {'S': partition_key}, 'SK': {'S': sort_key}}
+        )
+
+        if 'Item' not in resp:
+            return { 
+            'statusCode': 404,
+            'headers': {
+                'Content-Type': 'application/json'
+            }, 
+            'body': json.dumps({"message": "Transaction not found", "success": False})}
+
+        
+        date = resp['Item']['Date']['S']
+        trans_type = resp['Item']['Type']['S'].lower()
+        category = resp['Item']['Category']['S']
+        amount = resp['Item']['Value']['N']
+
+        dynamodb.transact_write_items(
+            TransactItems=[
+                {
+                    'Delete': {
+                        'TableName': 'Expenser_App',
+                        'Key': {'PK': {'S': partition_key}, 'SK': {'S': sort_key}}
+                    }
+                },
+                {
+                    'Update': {
+                        'TableName': 'Expenser_App',
+                        'Key': {'PK': {'S': user_key}, 'SK': {'S': f"SUMMARY:{date[:7]}"}},
+                        # Subtracting the value from both the Type total and Category total
+                        'UpdateExpression': "SET #t = #t - :val, #c = #c - :val",
+                        'ExpressionAttributeNames': {
+                            '#t': trans_type,
+                            '#c': f"{trans_type[:3]}:{category}"
+                        },
+                        'ExpressionAttributeValues': {
+                            ':val': {'N': amount}
+                        }
+                    }
+                }
+            ]
         )
 
         log_payload = {
@@ -38,7 +78,9 @@ def lambda_handler(event, context):
         return {
             'statusCode': 200,
             'headers': {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'http://localhost:5173',
+                'Access-Control-Allow-Methods': 'OPTIONS,DELETE'
             },
             'body': json.dumps({"message": 'Transaction Deleted!', "success": True})
         }
@@ -62,5 +104,5 @@ def lambda_handler(event, context):
             'headers': {
                 'Content-Type': 'application/json'
             },
-            'body': json.dumps({"error": "Sorry, something went wrong!", "success": False})
+            'body': json.dumps({"message": "Sorry, something went wrong!", "success": False})
         }

@@ -1,5 +1,3 @@
-# serverless lambda function 
-
 import json
 import boto3
 import uuid
@@ -25,12 +23,12 @@ def lambda_handler(event, context):
     #getting all the attributes
     user_id = event['pathParameters']['user_id']
     body = json.loads(event['body'])
-    Category = body['category']
-    Desc = body['desc']
-    Value = Decimal(str(body['value']))
-    Type = body['type']
-    Currency = body['currency']
-    Date = body['date']
+    Category = body['Category']
+    Desc = body['Desc']
+    Value = Decimal(str(body['Value']))
+    Type = body['Type']
+    Currency = body['Currency']
+    Date = body['Date']
 
     #now forming additional attributes required for the dynamodb table
     unique_id = str(uuid.uuid4())
@@ -41,7 +39,7 @@ def lambda_handler(event, context):
     GSI2_PK = f"USER:{user_id}"
 
     # calculating the bucket value 
-    bucket_val = (math.ceil(body['value'] * 1e-2) * 100)-1
+    bucket_val = (math.ceil(body['Value'] * 1e-2) * 100)-1
     GSI2_SK = f"{bucket_val}:{Date}"
     GSI3_PK = f"USER:{user_id}"
     GSI3_SK = f"{Category.upper()[:4]}:{Date}"
@@ -99,12 +97,12 @@ def lambda_handler(event, context):
         
         print(json.dumps(log_payload))
 
-        lll
-
         return {
             "statusCode" : 200,
              "headers": {
                 "Content-Type": "application/json",
+                'Access-Control-Allow-Origin': 'http://localhost:5173',
+                'Access-Control-Allow-Methods': 'OPTIONS,POST,GET,DELETE'
             },
             "body" : json.dumps({
                 "message" : "Transaction created successfully",
